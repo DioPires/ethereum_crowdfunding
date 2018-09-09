@@ -80,10 +80,11 @@ function getIdeaTotalVotes(bytes32 _ideaId) public view returns (uint)
 ```
 
 ## Running the tests
-To run the tests, one should just need to go to the project's directory and run:
+To run the tests, one should open two terminal windows in the project's directory. One of them should be running `testrpc` or `ganache-cli`:
 ```
-npm install
+testrpc
 ```
+In the other terminal window, one should run the commands:
 ```
-truffle test
+npm install && truffle test
 ```
