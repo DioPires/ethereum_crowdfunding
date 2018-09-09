@@ -43,9 +43,14 @@ Starting from the investors of the winning idea, the contract checks the total a
 
 In this scenario, the contract computes a weight of `0.5` to the one that voted with 10 ETH, `0.25` to the one that voted with 5 ETH, and `0.125` to each of the other two. Then, it would send `0.5 * 10 = 5 ETH` from the first voter, `0.25 * 10 = 2.5 ETH` from the second voter, and `0.125 * 10 = 1.25 ETH` from each of the remaining two. The remaining investment of each of these investors/voters is returned to them. Lastly, all the other investors that voted for ideas different from the winning one also get their ETH back.
 
-The crowdfunding round can be triggered by calling the method with the following signature:
+The end of the crowdfunding round can be triggered by calling the method with the following signature:
 ```
 function endCrowdfunding() public
+```
+
+**NOTE:** sending the ETH automatically can pose a security risk. Therefore, the contract implements a withdrawal pattern where triggering the end of the crowdfunding results in the remaining investments being available for withdrawal by their respective investors. Withdrawing the investment, assuming crowdfunding round is ended and there are investments to be withdrawn, can be done by calling the method with the following signature:
+```
+function withdraw() public
 ```
 
 ### Reading ideas and their fields
@@ -75,3 +80,7 @@ function getIdeaTotalVotes(bytes32 _ideaId) public view returns (uint)
 ```
 
 ## Running the tests
+To run the tests, one should just need to go to the project's directory and run:
+```
+truffle test
+```
