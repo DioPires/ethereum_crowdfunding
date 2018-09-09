@@ -99,6 +99,7 @@ contract Crowdfunding{
         votesRemaining[msg.sender] -= _votes;
         ideas[_ideaId].votes[msg.sender] += _votes;
         ideas[_ideaId].totalVotes += _votes;
+        ideas[_ideaId].voters.push(msg.sender);
     }
     
     
@@ -149,6 +150,11 @@ contract Crowdfunding{
     
     function getIdeaTotalVotes(bytes32 _ideaId) public view returns (uint) {
         return ideas[_ideaId].totalVotes;
+    }
+    
+    
+    function getIdeaVotes(bytes32 _ideaId, address _investor) public view returns (uint) {
+        return ideas[_ideaId].votes[_investor];
     }
     
     
