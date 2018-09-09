@@ -23,6 +23,9 @@
         "lint": "./scripts/lint.sh"
     },
     "keywords": [],
-    "pre-commit": "lint",
+    "pre-commit": [
+        "lint",
+        "test"
+    ],
     "config": {}
 }
