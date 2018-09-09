@@ -1,7 +1,5 @@
 var Crowdfunding = artifacts.require("./Crowdfunding.sol");
 var chai = require('chai');
-var web3 = require('web3');
-//var TestUtils = require('./TestUtils.js');
 var expect = chai.expect;
 var chaiAsPromissed = require('chai-as-promised')
 chai.use(chaiAsPromissed);
@@ -25,30 +23,40 @@ var commitHash1;
 var commitHash2;
 var commitHash3;
 
+var expectRevert = RegExp('revert');
+
+function wait(ms){
+	var start = new Date().getTime();
+	var end = start;
+	while(end < start + ms) {
+		end = new Date().getTime();
+	}
+}
+
 contract('Crowdfunding', function(accounts) {
 	beforeEach( async () => {
-	    crowdfundingInstance = await Crowdfunding.new(3600, 86400, 86400);
-
 	    userAcc = accounts[0];
 	    investAcc1 = accounts[1];
 	    investAcc2 = accounts[2];
 	    investAcc3 = accounts[3];
 	    investAcc4 = accounts[4];
 	    
-	    ethNeeded1 = 10000000000000000000;
+	    ethNeeded1 = 1000000000000000000;
         whitepaperUrl1 = "https://github.com/steemit/whitepaper/blob/master/README.md";
         commitHash1 = "3aad9baab4aad829cb13a715a43989e9a2f0a9fe";
 
-        ethNeeded2 = 20000000000000000000;
+        ethNeeded2 = 2000000000000000000;
         whitepaperUrl2 = "https://github.com/joincivil/whitepaper/blob/master/README.md";
         commitHash2 = "ad1797a758c92b027b084296847eb3ceb3bcb92f";
 
-        ethNeeded3 = 50000000000000000000;
+        ethNeeded3 = 5000000000000000000;
         whitepaperUrl3 = "https://github.com/0xbitcoin/white-paper/blob/master/README.md";
         commitHash3 = "cbef62deab74635542dc9c5936581167132c1dda";
 	})
 
 	it("should submit three ideas", async function () {
+		crowdfundingInstance = await Crowdfunding.new(3600, 86400, 86400);
+
 		await crowdfundingInstance.addIdea.sendTransaction(ethNeeded1, whitepaperUrl1, commitHash1);
 		await crowdfundingInstance.addIdea.sendTransaction(ethNeeded2, whitepaperUrl2, commitHash2);
 		await crowdfundingInstance.addIdea.sendTransaction(ethNeeded3, whitepaperUrl3, commitHash3);
@@ -82,8 +90,10 @@ contract('Crowdfunding', function(accounts) {
 		expect(_commitHash3).to.be.equal(commitHash3);
 	})
 
-	it("should invest 20 ETH", async function () {
-		var investment = 20000000000000000000;
+	it("should invest 2 ETH", async function () {
+		crowdfundingInstance = await Crowdfunding.new(3600, 86400, 86400);
+
+		var investment = 2000000000000000000;
 		await crowdfundingInstance.invest.sendTransaction({from: investAcc1, value: investment});
 
 		var totalInvestment = await crowdfundingInstance.getTotalInvestment.call(investAcc1);
@@ -93,14 +103,16 @@ contract('Crowdfunding', function(accounts) {
 		expect(JSON.parse(remainingVotes)).to.be.equal(investment);
 	})
 
-	it("should invest 20 ETH and invest 5 ETH worth of votes", async function () {
+	it("should invest 2 ETH and invest 0.5 ETH worth of votes", async function () {
+		crowdfundingInstance = await Crowdfunding.new(3600, 86400, 86400);
+
 		await crowdfundingInstance.addIdea.sendTransaction(ethNeeded1, whitepaperUrl1, commitHash1);
 		var ideaId1 = await crowdfundingInstance.convertCommitHashToIdeaId.call(commitHash1);
 		
-		var investment1 = 20000000000000000000;
-		var votes1 = 5000000000000000000;
-		var investment2 = 10000000000000000000;
-		var votes2 = 1000000000000000000;
+		var investment1 = 2000000000000000000;
+		var votes1 = 500000000000000000;
+		var investment2 = 1000000000000000000;
+		var votes2 = 100000000000000000;
 		await crowdfundingInstance.invest.sendTransaction({from: investAcc1, value: investment1});
 		await crowdfundingInstance.invest.sendTransaction({from: investAcc2, value: investment2});
 		await crowdfundingInstance.vote.sendTransaction(ideaId1, votes1, {from: investAcc1});
@@ -122,6 +134,57 @@ contract('Crowdfunding', function(accounts) {
 		expect(JSON.parse(ideaTotalVotes)).to.be.equal(votes1+votes2);
 		expect(JSON.parse(ideaVotes1)).to.be.equal(votes1);
 		expect(JSON.parse(ideaVotes2)).to.be.equal(votes2);
+	})
+
+	it("should invest 2 ETH and invest 0.5 ETH worth of votes, should invest 1 ETH, should end crowdfunding round", async function () {
+		crowdfundingInstance = await Crowdfunding.new(3, 3, 3);
+
+		await crowdfundingInstance.addIdea.sendTransaction(ethNeeded1, whitepaperUrl1, commitHash1, {from: userAcc});
+		var ideaId1 = await crowdfundingInstance.convertCommitHashToIdeaId.call(commitHash1);
+		
+		var investment1 = 2000000000000000000;
+		var votes1 = 500000000000000000;
+		var investment2 = 1000000000000000000;
+		await crowdfundingInstance.invest.sendTransaction({from: investAcc1, value: investment1});
+		await crowdfundingInstance.invest.sendTransaction({from: investAcc2, value: investment2});
+		await crowdfundingInstance.vote.sendTransaction(ideaId1, votes1, {from: investAcc1});
+
+		// Ensure that the voting period ends before trying to end the crowdfunding round
+		wait(5000);
+
+		await crowdfundingInstance.endCrowdfunding.sendTransaction({from: userAcc});
+		var withdrawAmount1 = await crowdfundingInstance.getWithdrawAmount.call({from: investAcc1});
+		var withdrawAmount2 = await crowdfundingInstance.getWithdrawAmount.call({from: investAcc2});
+		var withdrawAmount3 = await crowdfundingInstance.getWithdrawAmount.call({from: userAcc});
+
+		await crowdfundingInstance.withdraw.sendTransaction({from: userAcc});
+		await crowdfundingInstance.withdraw.sendTransaction({from: investAcc1});
+		await crowdfundingInstance.withdraw.sendTransaction({from: investAcc2});
+
+		expect(JSON.parse(withdrawAmount1)).to.be.equal(investment1-votes1);
+		expect(JSON.parse(withdrawAmount2)).to.be.equal(investment2);
+		expect(JSON.parse(withdrawAmount3)).to.be.equal(votes1);
+	})
+
+	it("should fail to end crowdfunding round because end time not reached yet", async function () {
+		crowdfundingInstance = await Crowdfunding.new(3600, 86400, 86400);
+
+		await crowdfundingInstance.addIdea.sendTransaction(ethNeeded1, whitepaperUrl1, commitHash1, {from: userAcc});
+		var ideaId1 = await crowdfundingInstance.convertCommitHashToIdeaId.call(commitHash1);
+		
+		var investment1 = 2000000000000000000;
+		var votes1 = 500000000000000000;
+		var investment2 = 1000000000000000000;
+		await crowdfundingInstance.invest.sendTransaction({from: investAcc1, value: investment1});
+		await crowdfundingInstance.invest.sendTransaction({from: investAcc2, value: investment2});
+		await crowdfundingInstance.vote.sendTransaction(ideaId1, votes1, {from: investAcc1});
+
+		var reverted = false;
+		await crowdfundingInstance.endCrowdfunding.sendTransaction({from : userAcc}).catch(
+			(err) => {
+				reverted = expectRevert.test(err.message);
+			});
+		expect(reverted).to.be.equal(true,"Revert expected");
 	})
 
 });
