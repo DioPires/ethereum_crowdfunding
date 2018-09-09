@@ -36,12 +36,6 @@ contract Crowdfunding{
     }
     
     
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
-    }
-    
-    
     function getInvestEnd() public view returns (uint) {
         return investEnd;
     }
@@ -53,11 +47,11 @@ contract Crowdfunding{
     
     
     function addIdea (uint _ethNeeded, string _whitepaperUrl, string _commitHash) public {
-        require(now <= submissionEnd);
+        require(now <= submissionEnd, "The submission time already ended");
         
         bytes32 _ideaId = keccak256(abi.encodePacked(_commitHash));
         if (ideas[_ideaId].owner != 0x0) {
-            revert();
+            revert("Idea submitted already exists");
         } else {
             Idea memory newIdea;
             newIdea.ethNeeded = _ethNeeded;
@@ -75,7 +69,7 @@ contract Crowdfunding{
     
     
     function invest() public payable {
-        require(now <= investEnd);
+        require(now <= investEnd, "Investment time already ended");
         
         if (investments[msg.sender] > 0) {
             investments[msg.sender] += msg.value;
@@ -92,9 +86,9 @@ contract Crowdfunding{
     
     
     function vote(bytes32 _ideaId, uint _votes) public {
-        require(now <= votesEnd);
-        require(ideas[_ideaId].owner != 0x0);
-        require(votesRemaining[msg.sender] >= _votes);
+        require(now <= votesEnd, "Voting time already ended");
+        require(ideas[_ideaId].owner != 0x0, "Idea doesn't exist");
+        require(votesRemaining[msg.sender] >= _votes, "The voter doesn't have the necessary votes");
         
         votesRemaining[msg.sender] -= _votes;
         ideas[_ideaId].votes[msg.sender] += _votes;
