@@ -1,0 +1,27 @@
+{
+    "name": "ethereum_crowdfunding",
+    "version": "0.1.0",
+    "description": "Contracts for a crowdfunding platform on the Ethereum blockchain",
+    "main": "truffle.js",
+    "directories": {
+        "test": "test"
+    },
+    "dependencies": {
+        "dotenv": "^5.0.1",
+        "solhint": "^1.2.1",
+        "solium": "^1.1.7",
+        "truffle": "^4.1.11",
+        "solc": "^0.4.24",
+	"solc-js": "^0.4.24",
+        "truffle-hdwallet-provider": "0.0.3",
+        "web3": "^1.0.0-beta.35"
+    },
+    "devDependencies": {},
+    "scripts": {
+        "test": "truffle test",
+        "lint": "./scripts/lint.sh"
+    },
+    "keywords": [],
+    "pre-commit": "lint",
+    "config": {}
+}
