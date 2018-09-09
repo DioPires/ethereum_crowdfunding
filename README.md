@@ -82,5 +82,8 @@ function getIdeaTotalVotes(bytes32 _ideaId) public view returns (uint)
 ## Running the tests
 To run the tests, one should just need to go to the project's directory and run:
 ```
+npm install
+```
+```
 truffle test
 ```
