@@ -24,8 +24,7 @@
     },
     "keywords": [],
     "pre-commit": [
-        "lint",
-        "test"
+        "lint"
     ],
     "config": {}
 }
