@@ -7,7 +7,6 @@ This project enables the creation of crowdfunding campaigns in the Ethereum bloc
 The contract is coded in a way that accepts a single round of ideas submission, investment and voting. This means that once the contract is deployed, the owner of the contract sets the three end dates for submitting ideas, for submitting investments and for voting. Once these dates end, a new contract should be deployed and a new round of crowdfunding for ideas begins.
 
 ## Usage
-
 The contract allows for the creation of ideas, to send ETH to invest and vote for ideas.
 
 ### Creating ideas
@@ -88,3 +87,8 @@ In the other terminal window, one should run the commands:
 ```
 npm install && truffle test
 ```
+
+## Technical bottlenecks
+The solution is based on a pure Solidity and blockchain approach. This means that everything is processed and stored by the smart contract. Such an approach can be inefficient and expensive when a significant amount of ideas and investors take part.
+
+I tend to believe that blockchain should be seen as a source of truth and that everything that could be stored as an event, should be. This means that a more complex Dapp has to be put in place, in a way that it needs to store the state of the contract, as well as changes that occur, since everything (or almost) is stored by an event and not explicitly in the contract's local storage. Even though storage of state and changes tracking needs to be done by the Dapp, any Dapp based on the same contract can accomplish the same result, since contract events are available to everyone. If a disagreement regarding the contract's state comes up between players, they can just go through all the contract's events and restore its state.
